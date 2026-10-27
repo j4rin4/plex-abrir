@@ -26,19 +26,37 @@
   <a class="web" id="web" href="#">Abrir en el navegador</a>
 </main>
 <script>
-  // Parámetros: s = identificador del servidor Plex (40 hex), k = ratingKey del elemento a reproducir
+  // Parámetros: s = identificador del servidor Plex (40 hex), k = ratingKey del elemento a reproducir,
+  // t = metadataType opcional (1 película, 4 episodio), prueba = muestra variantes sin abrir nada solo
   const q = new URLSearchParams(location.search);
-  const s = q.get("s") || "", k = q.get("k") || "";
-  const valido = /^[0-9a-f]{40}$/i.test(s) && /^\d+$/.test(k);
+  const s = q.get("s") || "", k = q.get("k") || "", t = q.get("t") || "";
+  const valido = /^[0-9a-f]{40}$/i.test(s) && /^\d+$/.test(k) && /^\d*$/.test(t);
   const estado = document.getElementById("estado");
   if (!valido) {
     estado.textContent = "Enlace incompleto.";
     document.getElementById("app").remove();
     document.getElementById("web").remove();
+  } else if (q.has("prueba")) {
+    const clave = encodeURIComponent("/library/metadata/" + k);
+    const variantes = [
+      ["A · play", "plex://play/?metadataKey=" + clave + "&server=" + s],
+      ["B · play + tipo", "plex://play/?metadataKey=" + clave + "&metadataType=" + (t || 1) + "&server=" + s],
+      ["C · preplay (ficha en mi servidor)", "plex://preplay/?metadataKey=" + clave + "&metadataType=" + (t || 1) + "&server=" + s],
+      ["D · plexapp play", "plexapp://play/?metadataKey=" + clave + "&metadataType=" + (t || 1) + "&server=" + s],
+    ];
+    document.querySelector("h1").textContent = "🧪 Pruebas de enlace";
+    estado.textContent = "Con Plex ya abierto en segundo plano, toca cada opción y apunta qué hace.";
+    document.getElementById("app").remove();
+    document.getElementById("web").remove();
+    for (const [nombre, url] of variantes) {
+      const a = document.createElement("a");
+      a.className = "app"; a.href = url; a.textContent = nombre;
+      document.querySelector("main").appendChild(a);
+    }
   } else {
     const clave = encodeURIComponent("/library/metadata/" + k);
     const web = "https://app.plex.tv/desktop/#!/server/" + s + "/details?key=" + clave;
-    const ruta = "play/?metadataKey=" + clave + "&server=" + s;
+    const ruta = "play/?metadataKey=" + clave + (t ? "&metadataType=" + t : "") + "&server=" + s;
     const ua = navigator.userAgent;
     const android = /Android/i.test(ua);
     const ios = /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
