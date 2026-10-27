@@ -66,9 +66,19 @@
     document.getElementById("app").href = app;
     document.getElementById("web").href = web;
     if (ios) {
-      // La app de iOS no acepta enlaces externos para reproducir (probado en oct 2026): web de Plex
-      document.getElementById("app").remove();
-      location.replace(web);
+      // La app de iOS no acepta enlaces externos para reproducir (probado en oct 2026). Sí abre watch.plex.tv
+      // (ficha general) como enlace universal; si no hay ruta, web de Plex del servidor.
+      const w = q.get("w") || "";
+      if (/^(movie|show)\/[a-z0-9-]+(\/season\/\d+)?$/.test(w)) {
+        const watch = "https://watch.plex.tv/" + w;
+        document.getElementById("app").href = watch;
+        document.getElementById("app").textContent = "Abrir en la app de Plex";
+        document.getElementById("web").textContent = "Reproducir en el navegador";
+        location.href = watch;
+      } else {
+        document.getElementById("app").remove();
+        location.replace(web);
+      }
     } else if (android) {
       location.href = app;
       // Si la app no se abre, la página sigue visible: pasar al navegador
