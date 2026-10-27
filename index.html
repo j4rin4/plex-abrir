@@ -65,7 +65,11 @@
       : "plex://" + ruta;
     document.getElementById("app").href = app;
     document.getElementById("web").href = web;
-    if (android || ios) {
+    if (ios) {
+      // La app de iOS no acepta enlaces externos para reproducir (probado en oct 2026): web de Plex
+      document.getElementById("app").remove();
+      location.replace(web);
+    } else if (android) {
       location.href = app;
       // Si la app no se abre, la página sigue visible: pasar al navegador
       setTimeout(() => { if (!document.hidden) location.href = web; }, 2500);
